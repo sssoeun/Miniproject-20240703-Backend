@@ -5,8 +5,8 @@ const app = express();
 app.use(cors());
 
 // Dotenv
-const dotenv = require('dotenv').config();
-const PORT = process.env.PORT;
+const dotenv = require('dotenv');
+dotenv.config();
 
 // Body-parser
 const bodyParser = require('body-parser');
@@ -14,8 +14,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // listen
-app.listen(PORT, function () {
-    console.log(`Backend Server Ready. http://127.0.0.1:${PORT}`);
+app.listen(process.env.PORT, function () {
+    console.log(`Backend Server Ready. http://127.0.0.1:${process.env.PORT}`);
 });
 
 // Routes
