@@ -8,7 +8,7 @@ const { setup } = require('../utils/setup_db');
 // 로그인
 router.post('/login', async function (req, res) {
     const { mysqldb } = await setup();
-    let sql = `SELECT userid, userpw, salt FROM users WHERE userid=?`;
+    let sql = `SELECT userid, userpw, salt, userpw_updated_at FROM users WHERE userid=?`;
     try {
         let [rows, fields] = await mysqldb.promise().query(sql, [req.body.userid]);
         if (rows.length == 0) {
@@ -19,7 +19,14 @@ router.post('/login', async function (req, res) {
             return res.status(401).json({ alertMsg: '아이디 또는 비밀번호가 틀립니다.' });
         }
 
-        return res.json({ alertMsg: '로그인 성공' });
+        const lastUpdatedDate = new Date(rows[0].userpw_updated_at);
+        const currentDate = new Date();
+        const threeMonthsAgo = new Date(currentDate.getTime() - (3 * 30 * 24 * 60 * 60 * 1000));
+        if (lastUpdatedDate < threeMonthsAgo) {
+            return res.json({ alertMsg: '비밀번호 변경이 필요합니다.', passwordChangeRequired: true });
+        }
+
+        return res.json({ alertMsg: false });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ alertMsg: '서버 오류가 발생했습니다.' });
