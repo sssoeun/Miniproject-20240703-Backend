@@ -13,7 +13,7 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// listen
+// Listen
 app.listen(process.env.PORT, function () {
     console.log(`Backend Server Ready. http://127.0.0.1:${process.env.PORT}`);
 });
