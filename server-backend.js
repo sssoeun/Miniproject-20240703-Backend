@@ -22,3 +22,4 @@ app.listen(process.env.PORT, function () {
 app.use('/auth', require('./routes/auth'));
 app.use('/amm', require('./routes/asset-management'));
 app.use('/real-estate', require('./routes/real-estate'));
+app.use('/chatbot', require('./routes/chatbot'));
