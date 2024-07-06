@@ -5,6 +5,38 @@ const sha = require('sha256');
 // DB Setup
 const { setup } = require('../utils/setup_db');
 
+router.post('/delete', async function (req, res) {
+    try {
+        const { mysqldb } = await setup();
+
+        // 계정 조회
+        let [rows, fields] = await mysqldb.promise().query(`SELECT id as user_id FROM users WHERE userid=?`, [req.body.userid]);
+        if (rows.length == 0) {
+            return res.status(400).json({ alertMsg: '회원 정보가 존재하지 않습니다.' });
+        }
+
+        // users.id
+        const { user_id } = rows[0];
+        
+        // users 테이블에서 해당 회원 삭제
+        await mysqldb.promise().beginTransaction();
+        await mysqldb.promise().query(`DELETE FROM users WHERE id = ?`, [user_id]);
+
+        // accounts 테이블에서 해당 회원의 모든 데이터 삭제
+        await mysqldb.promise().query(`DELETE FROM accounts WHERE user_id = ?`, [user_id]);
+
+        // real_estate 테이블에서 해당 회원의 모든 데이터 삭제
+        await mysqldb.promise().query(`DELETE FROM real_estate WHERE user_id = ?`, [user_id]);
+
+        await mysqldb.promise().commit();
+        return res.json({ alertMsg: '그동안 저희 서비스를 이용해 주셔서 감사합니다. 안녕히 가세요.' });
+    } catch (err) {
+        await mysqldb.promise().rollback();
+        console.error(err);
+        return res.status(500).json({ alertMsg: '회원 탈퇴에 실패했습니다. 고객센터로 문의해 주시기 바랍니다.' });
+    }
+});
+
 router.post('/edit', async function (req, res) {
     try {
         const { mysqldb } = await setup();
@@ -34,7 +66,7 @@ router.post('/edit', async function (req, res) {
             await mysqldb.promise().query(sql, [req.body.userpw, salt, req.body.userid]);
         }
 
-        req.body.alertMsg = '회원정보 변경 완료.';
+        req.body.alertMsg = '회원정보가 성공적으로 변경되었습니다.';
         return res.json({ data: req.body });
     } catch (err) {
         console.error(err);
@@ -93,7 +125,7 @@ router.post('/check-id', async function (req, res) {
         if (req.body.userid == undefined) {
             return res.json({ isDuplicate: true });
         }
-        
+
         const { mysqldb } = await setup();
         let sql = `SELECT userid FROM users WHERE userid=?`;
         let [rows, fields] = await mysqldb.promise().query(sql, [req.body.userid]);
@@ -117,7 +149,7 @@ router.post('/sign-up', async function (req, res) {
         if (req.body.userid.length < 4) {
             return res.status(400).json({ alertMsg: '아이디는 4자리 이상으로 해주세요.' });
         } // 검사: 아이디 
-        
+
         let [rows, fields] = await mysqldb.promise().query(sql, [req.body.userid]);
         if (0 < rows[0].count) {
             return res.status(400).json({ alertMsg: '해당 아이디는 이미 존재합니다.' });
@@ -143,7 +175,7 @@ router.post('/sign-up', async function (req, res) {
         await mysqldb.promise().query(sql, [req.body.userid, req.body.userpw, salt, req.body.email, req.body.birthday]);
 
         // 회원가입 완료
-        return res.json({ alertMsg: '가입이 완료되었습니다.' });
+        return res.json({ alertMsg: '회원가입이 완료되었습니다. 환영합니다!' });
     } catch (err) {
         return res.status(400).json({ alertMsg: '이미 등록된 이메일입니다.' });
     }
