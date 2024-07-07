@@ -3,5 +3,5 @@ package-lock.json
 private.ini
 .env
 .vscode
-json/*
+*.json
 backup/*
