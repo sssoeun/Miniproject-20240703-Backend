@@ -140,6 +140,28 @@ router.post('/check-id', async function (req, res) {
     }
 });
 
+// 회원가입 폼에서 중복 아이디 검사
+router.post('/check-email', async function (req, res) {
+    try {
+        if (req.body.email == undefined) {
+            return res.json({ isDuplicate: true });
+        }
+
+        const { mysqldb } = await setup();
+        let sql = `SELECT userid FROM users WHERE email=?`;
+        let [rows, fields] = await mysqldb.promise().query(sql, [req.body.email]);
+
+        if (rows.length == 0) {
+            return res.json({ isDuplicate: false });
+        } else {
+            return res.json({ isDuplicate: true });
+        }
+    } catch (error) {
+        console.error('Error checking user ID:', error);
+        res.status(500).json({ error: 'An error occurred while checking the user ID.' });
+    }
+});
+
 // 회원가입 - 유저 등록
 router.post('/sign-up', async function (req, res) {
     const { mysqldb } = await setup();
