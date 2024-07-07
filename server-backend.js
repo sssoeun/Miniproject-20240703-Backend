@@ -13,6 +13,12 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+
+
+//////////// cookie 설정
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
+
 // listen
 app.listen(PORT, function () {
     console.log(`Backend Server Ready. http://127.0.0.1:${PORT}`);
