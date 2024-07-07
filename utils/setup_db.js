@@ -2,7 +2,7 @@ const dotenv = require('dotenv').config();
 const mysql = require('mysql2');
 let mysqldb;
 
-const setup = async () => { 
+const setup = async () => {
     if (mysqldb) {
         return { mysqldb };
     }
@@ -20,7 +20,7 @@ const setup = async () => {
 
         return { mysqldb };
     } catch (err) {
-        console.error("DB 접속 실패.", err);   
+        console.error("DB 접속 실패.", err);
         throw err;
     }
 };

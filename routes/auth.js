@@ -32,7 +32,7 @@ router.post('/check-id', async function (req, res) {
         if (req.body.userid == undefined) {
             return res.json({ isDuplicate: true });
         }
-        
+
         const { mysqldb } = await setup();
         let sql = `SELECT userid FROM users WHERE userid=?`;
         let [rows, fields] = await mysqldb.promise().query(sql, [req.body.userid]);
@@ -56,7 +56,7 @@ router.post('/sign-up', async function (req, res) {
         if (req.body.userid.length < 4) {
             return res.status(401).json({ alertMsg: '아이디는 4자리 이상으로 해주세요.' });
         } // 검사: 아이디 
-        
+
         let [rows, fields] = await mysqldb.promise().query(sql, [req.body.userid]);
         if (0 < rows[0].count) {
             return res.status(401).json({ alertMsg: '해당 아이디는 이미 존재합니다.' });
