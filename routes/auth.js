@@ -39,7 +39,7 @@ router.post('/delete', async function (req, res) {
 router.post('/edit', async function (req, res) {
     try {
         const { mysqldb } = await setup();
-        let sql = `SELECT userid, email FROM users WHERE userid=?`;
+        let sql = `SELECT email, birthday FROM users WHERE userid=?`;
         let [rows, fields] = await mysqldb.promise().query(sql, [req.body.userid]);
 
         if (rows.length == 0) {
@@ -66,6 +66,7 @@ router.post('/edit', async function (req, res) {
         }
 
         req.body.alertMsg = '회원정보가 성공적으로 변경되었습니다.';
+        req.body.birthday = rows[0].birthday;
         return res.json({ data: req.body });
     } catch (err) {
         console.error(err);
