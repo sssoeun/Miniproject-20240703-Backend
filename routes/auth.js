@@ -39,7 +39,7 @@ router.post('/check-id', async function (req, res) {
         if (req.body.userid == undefined) {
             return res.json({ isDuplicate: true });
         }
-        
+
         const { mysqldb } = await setup();
         let sql = `SELECT userid FROM users WHERE userid=?`;
         let [rows, fields] = await mysqldb.promise().query(sql, [req.body.userid]);
