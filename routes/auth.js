@@ -21,9 +21,9 @@ router.post('/delete', async function (req, res) {
         // 회원 기록 삭제
         await mysqldb.promise().beginTransaction();
         await Promise.all([
-            mysqldb.promise().query(`DELETE FROM users WHERE id = ?`, [user_id]),
-            mysqldb.promise().query(`DELETE FROM accounts WHERE user_id = ?`, [user_id]),
-            mysqldb.promise().query(`DELETE FROM real_estate WHERE user_id = ?`, [user_id])
+            mysqldb.promise().query(`DELETE FROM users WHERE id=?`, [user_id]),
+            mysqldb.promise().query(`DELETE FROM accounts WHERE user_id=?`, [user_id]),
+            mysqldb.promise().query(`DELETE FROM real_estate WHERE user_id=?`, [user_id])
         ]);
         await mysqldb.promise().commit();
 
@@ -76,7 +76,7 @@ router.post('/edit', async function (req, res) {
 router.post('/edit-info', async function (req, res) {
     try {
         const { mysqldb } = await setup();
-        let sql = `SELECT userid, email FROM users WHERE userid=?`;
+        let sql = `SELECT userid, email, birthday FROM users WHERE userid=?`;
         let [rows, fields] = await mysqldb.promise().query(sql, [req.body.userid]);
 
         if (rows.length == 0) {
