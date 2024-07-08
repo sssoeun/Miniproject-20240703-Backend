@@ -7,11 +7,21 @@ app.use(cors());
 // Dotenv
 const dotenv = require('dotenv');
 dotenv.config();
+const dotenv = require('dotenv').config();
+const PORT = process.env.PORT;
+
+// session
+const { sessionConfig } = require('./utils/session');
+app.use(sessionConfig);
 
 // Body-parser
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+// cookie-parser
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 
 // Listen
 app.listen(process.env.PORT, function () {
