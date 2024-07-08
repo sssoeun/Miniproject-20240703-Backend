@@ -80,16 +80,16 @@ router.post('/delete', async function (req, res) {
 
 // 부동산 매물 수정 Submit
 router.post('/edit', async function (req, res) {
-    const { mysqldb } = await setup(); // MySQL 연결을 설정하는 함수 또는 객체
-    const sessionUser = req.body.sessionUser.userid;
-
-    const [userRows] = await mysqldb.promise().query('select id From users where userid = ?', [sessionUser]);
-    if (userRows.length == 0) {
-        return res.status(400).send({ message: 'userID가없음' });
-    }
-    const userId = userRows[0].id;
-
     try {
+        const { mysqldb } = await setup(); // MySQL 연결을 설정하는 함수 또는 객체
+        const sessionUser = req.body.sessionuser.userid;
+    
+        const [userRows] = await mysqldb.promise().query('select id From users where userid = ?', [sessionUser]);
+        if (userRows.length == 0) {
+            return res.status(400).send({ message: 'userID가없음' });
+        }
+        const userId = userRows[0].id;
+    
         // MySQL 쿼리를 사용하여 데이터 수정
         let sql = `
             update real_estate 
@@ -108,10 +108,11 @@ router.post('/edit', async function (req, res) {
         ]);
 
         // 수정 성공 시
+        const [real_estate] = await mysqldb.promise().query('select * from real_estate order by id desc');
         if (result.affectedRows > 0) {
-            return res.status(200).send({ alertMsg: '수정되었습니다.' });
+            return res.status(200).send({ alertMsg: '수정되었습니다.', real_estate });
         } else {
-            return res.status(404).send({ alertMsg: '수정 실패' });
+            return res.status(404).send({ alertMsg: '수정 실패', real_estate });
         }
     } catch (err) {
         return res.status(500).send({ alertMsg: '서버 오류' });
