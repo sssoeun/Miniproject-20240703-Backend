@@ -1,4 +1,5 @@
 let router = require('express').Router();
+const moment = require('moment-timezone');
 
 // BackendServer real-estate
 // DB Setup
@@ -6,56 +7,77 @@ const { setup } = require('../utils/setup_db');
 
 router.get('/', async (req, res) => {
     const { mysqldb } = await setup();
-
     const sessionuser = req.headers['sessionuser'];
 
     if (!sessionuser) {
-        return res.status(401).json({ alertMsg: '인증되지 않은 사용자' })
+        return res.status(401).json({ alertMsg: '인증되지 않은 사용자' });
     }
 
-    const [real_estate] = await mysqldb.promise().query('select * from real_estate order by id desc');
-    res.json(real_estate);
+    const page = parseInt(req.query.page) || 1; // 현재 페이지 번호, 기본값은 1
+    const itemsPerPage = parseInt(req.query.itemsPerPage) || 10; // 페이지당 항목 수, 기본값은 10
+    const offset = (page - 1) * itemsPerPage;
+
+    const [real_estate] = await mysqldb.promise().query(`SELECT * FROM real_estate ORDER BY id DESC LIMIT ?, ?`, [offset, itemsPerPage]);
+    const [totalCount] = await mysqldb.promise().query('SELECT COUNT(*) as count FROM real_estate');
+    const totalPages = Math.ceil(totalCount[0].count / itemsPerPage);
+
+    res.json({
+        real_estate,
+        totalPages,
+        currentPage: page
+    });
 })
 
 router.get('/search', async (req, res) => {
     const { mysqldb } = await setup();
-
     const sessionuser = req.headers['sessionuser'];
     if (!sessionuser) {
-        return res.status(401).json({ alertMsg: '인증되지 않은 사용자' })
+        return res.status(401).json({ alertMsg: '인증되지 않은 사용자' });
     }
+
     const req_selectv = req.headers['req_selectv'];
     const req_sword = decodeURIComponent(req.headers['req_sword']);
 
-    let sql = `
-SELECT * FROM real_estate 
-WHERE ${req_selectv} LIKE ?;`;
+    const page = parseInt(req.query.page) || 1; // 현재 페이지 번호, 기본값은 1
+    const itemsPerPage = parseInt(req.query.itemsPerPage) || 10; // 페이지당 항목 수, 기본값은 10
+    const offset = (page - 1) * itemsPerPage;
 
-    const [real_estate] = await mysqldb.promise().query(sql, [`%${req_sword}%`]);
-    res.json(real_estate);
-})
+    let sql = `SELECT * FROM real_estate WHERE ${req_selectv} LIKE ? ORDER BY id DESC LIMIT ?, ?`;
+    const [real_estate] = await mysqldb.promise().query(sql, [`%${req_sword}%`, offset, itemsPerPage]);
+    const [totalCount] = await mysqldb.promise().query(`SELECT COUNT(*) as count FROM real_estate WHERE ${req_selectv} LIKE ?`, [`%${req_sword}%`]);
+    const totalPages = Math.ceil(totalCount[0].count / itemsPerPage);
+
+    res.json({
+        real_estate,
+        totalPages,
+        currentPage: page
+    });
+});
 
 
 // 부동산 매물 등록 Submit
 router.post('/save', async (req, res) => {
     const { mysqldb } = await setup();
-    const sessionUser = req.body.sessionUser.userid;
+    const sessionuser = req.body.sessionuser.userid;
 
-    const [userRows] = await mysqldb.promise().query('select id From users where userid = ?', [sessionUser]);
+    const [userRows] = await mysqldb.promise().query('select id From users where userid = ?', [sessionuser]);
     if (userRows.length == 0) {
         return res.status(400).send({ message: 'userID가없음' });
     }
     const userId = userRows[0].id;
 
-
     try {
-        let sql = 'INSERT INTO real_estate (user_id, address, apartment, city, area, imagepath, selling_price, jeonse_price, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-        await mysqldb.promise().query(sql, [userId, req.body.address, req.body.apartment, req.body.city, req.body.area, req.body.imagepath, req.body.selling_price, req.body.jeonse_price, req.body.status]);
+        // 현재 시간을 한국 시간대로 변환
+        const currentTime = moment().tz("Asia/Seoul").format('YYYY-MM-DD HH:mm:ss');
+
+        let sql = 'INSERT INTO real_estate (user_id, address, apartment, city, area, imagepath, selling_price, jeonse_price, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        await mysqldb.promise().query(sql, [userId, req.body.address, req.body.apartment, req.body.city, req.body.area, req.body.imagepath, req.body.selling_price, req.body.jeonse_price, req.body.status, currentTime]);
         // 매물 등록 완료
         return res.status(200).json({ alertMsg: '매물 등록이 완료되었습니다.' });
 
     } catch (err) {
-        return res.status(401).json({ alertMsg: '등록에 실패하였습니다.' });
+        console.error(err);
+        return res.status(500).json({ alertMsg: '등록에 실패하였습니다.' });
     }
 });
 
@@ -82,9 +104,9 @@ router.post('/delete', async function (req, res) {
 // 부동산 매물 수정 Submit
 router.post('/edit', async function (req, res) {
     const { mysqldb } = await setup(); // MySQL 연결을 설정하는 함수 또는 객체
-    const sessionUser = req.body.sessionUser.userid;
+    const sessionuser = req.body.sessionuser.userid;
 
-    const [userRows] = await mysqldb.promise().query('select id From users where userid = ?', [sessionUser]);
+    const [userRows] = await mysqldb.promise().query('select id From users where userid = ?', [sessionuser]);
     if (userRows.length == 0) {
         return res.status(400).send({ message: 'userID가없음' });
     }
