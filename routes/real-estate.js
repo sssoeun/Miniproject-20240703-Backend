@@ -104,9 +104,9 @@ router.post('/delete', async function (req, res) {
 // 부동산 매물 수정 Submit
 router.post('/edit', async function (req, res) {
     const { mysqldb } = await setup(); // MySQL 연결을 설정하는 함수 또는 객체
-    const sessionUser = req.body.sessionUser.userid;
+    const sessionuser = req.body.sessionuser.userid;
 
-    const [userRows] = await mysqldb.promise().query('select id From users where userid = ?', [sessionUser]);
+    const [userRows] = await mysqldb.promise().query('select id From users where userid = ?', [sessionuser]);
     if (userRows.length == 0) {
         return res.status(400).send({ message: 'userID가없음' });
     }
@@ -167,4 +167,25 @@ router.post('/jeonse', async function (req, res) {
     //
 });
 
+// 자기글만 수정하기
+router.post('/edit_test', async (req, res) => {
+    const { mysqldb } = await setup(); // MySQL 연결을 설정하는 함수 또는 객체
+    const sessionuser = req.body.sessionuser.userid;
+
+    const [userRows] = await mysqldb.promise().query('select id From users where userid = ?', [sessionuser]);
+    if (userRows.length == 0) {
+        return res.status(400).send({ message: 'userID가없음' });
+    }
+    const userId = userRows[0].id;
+
+    try {
+        let edit_test = `select id from users where userid = ?`;
+        const [etest] = await mysqldb.promise().query(edit_test, [userId]);
+        let sql = `select userid from users where id = (select user_id from real_estate where id = ?);`; //해당 글에 real-estate 테이블의 id값
+        const [result] = await mysqldb.promise().query(sql, [userId]);
+    } catch (err) {
+        console.error('게시물 수정 실패:', err);
+        return res.status(500).send({ alertMsg: '서버 오류' });
+    }
+})
 module.exports = router;
