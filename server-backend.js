@@ -7,8 +7,6 @@ app.use(cors());
 // Dotenv
 const dotenv = require('dotenv');
 dotenv.config();
-const dotenv = require('dotenv').config();
-const PORT = process.env.PORT;
 
 // session
 const { sessionConfig } = require('./utils/session');
