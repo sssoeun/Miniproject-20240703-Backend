@@ -65,6 +65,12 @@ router.post('/edit', async function (req, res) {
             await mysqldb.promise().query(sql, [req.body.userpw, salt, req.body.userid]);
         }
 
+        // 닉네임 변경
+        if (req.body.nickname) {
+            sql = `UPDATE users SET nickname=? WHERE userid=?`;
+            await mysqldb.promise().query(sql, [req.body.nickname, req.body.userid]);
+        }
+
         req.body.alertMsg = '회원정보가 성공적으로 변경되었습니다.';
         req.body.birthday = rows[0].birthday;
         return res.json({ data: req.body });
@@ -77,7 +83,7 @@ router.post('/edit', async function (req, res) {
 router.post('/edit-info', async function (req, res) {
     try {
         const { mysqldb } = await setup();
-        let sql = `SELECT userid, email, birthday FROM users WHERE userid=?`;
+        let sql = `SELECT userid, email, birthday, nickname FROM users WHERE userid=?`;
         let [rows, fields] = await mysqldb.promise().query(sql, [req.body.userid]);
 
         if (rows.length == 0) {
@@ -94,7 +100,7 @@ router.post('/edit-info', async function (req, res) {
 // 로그인
 router.post('/login', async function (req, res) {
     const { mysqldb } = await setup();
-    let sql = `SELECT userid, userpw, salt, userpw_updated_at FROM users WHERE userid=?`;
+    let sql = `SELECT userid, userpw, salt, userpw_updated_at, nickname FROM users WHERE userid=?`;
     try {
         let [rows, fields] = await mysqldb.promise().query(sql, [req.body.userid]);
         if (rows.length == 0) {
@@ -105,14 +111,16 @@ router.post('/login', async function (req, res) {
             return res.status(401).json({ alertMsg: '아이디 또는 비밀번호가 틀립니다.' });
         }
 
+        const { nickname } = rows[0];
+
         const lastUpdatedDate = new Date(rows[0].userpw_updated_at);
         const currentDate = new Date();
         const threeMonthsAgo = new Date(currentDate.getTime() - (3 * 30 * 24 * 60 * 60 * 1000));
         if (lastUpdatedDate < threeMonthsAgo) {
-            return res.json({ alertMsg: '비밀번호 변경이 필요합니다.', passwordChangeRequired: true });
+            return res.json({ alertMsg: '비밀번호 변경이 필요합니다.', passwordChangeRequired: true, nickname });
         }
 
-        return res.json({ alertMsg: false });
+        return res.json({ alertMsg: false, nickname });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ alertMsg: '서버 오류가 발생했습니다.' });
