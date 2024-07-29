@@ -30,8 +30,8 @@ router.post('/delete', async function (req, res) {
         // return
         return res.json({ alertMsg: '그동안 저희 서비스를 이용해 주셔서 감사합니다. 안녕히 가세요.' });
     } catch (err) {
-        await mysqldb.promise().rollback();
         console.error(err);
+        await mysqldb.promise().rollback();
         return res.status(500).json({ alertMsg: '회원 탈퇴에 실패했습니다. 고객센터로 문의해 주시기 바랍니다.' });
     }
 });

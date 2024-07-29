@@ -34,6 +34,7 @@ class QNA {
     }
 
     getBestAnswer(userQuestion) {
+        // 형태소 분석 및 스탑워드 처리
         const cleanQuestion = this.cleanText(userQuestion);
 
         // 유사도 계산
