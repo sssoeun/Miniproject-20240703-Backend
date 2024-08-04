@@ -22,8 +22,18 @@ const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
 // Listen
-app.listen(process.env.PORT, function () {
-    console.log(`Backend Server Ready. http://127.0.0.1:${process.env.PORT}`);
+const port = process.env.PORT || 8000;
+app.listen(port, (err) => {
+    if (err) {
+        console.error('Error starting server:', err);
+        return;
+    }
+
+    if (process.env.NODE_ENV === 'production') {
+        console.log(`Backend Server Production Ready.`);
+    } else {
+        console.log(`Backend Server Ready. https://127.0.0.1:${port}`);
+    }
 });
 
 // Routes
