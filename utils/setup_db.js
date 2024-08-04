@@ -15,7 +15,7 @@ const setup = async () => {
             password: process.env.MYSQL_PASSWORD,
         });
         mysqldb.connect();
-        console.log("MySQL 접속 성공.");
+        // console.log("MySQL 접속 성공.");
 
         return { mysqldb };
     } catch (err) {
