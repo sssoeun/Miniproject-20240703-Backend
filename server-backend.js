@@ -30,9 +30,9 @@ app.listen(port, (err) => {
     }
 
     if (process.env.NODE_ENV === 'production') {
-        console.log(`Backend Server Production Ready.`);
+        console.log(`Backend Server Production Ready. PORT: ${port}`);
     } else {
-        console.log(`Backend Server Ready. https://127.0.0.1:${port}`);
+        console.log(`Backend Server Ready. PORT: ${port}`);
     }
 });
 
@@ -41,4 +41,4 @@ app.use('/auth', require('./routes/auth'));
 app.use('/amm', require('./routes/asset-management'));
 app.use('/real-estate', require('./routes/real-estate'));
 app.use('/naverlogin', require('./routes/naverlogin'));
-app.use('/chatbot', require('./routes/chatbot'));
+app.use('/api/chatbot', require('./routes/chatbot'));
